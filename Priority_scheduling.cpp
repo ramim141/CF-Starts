@@ -1,52 +1,66 @@
-#include <iostream>
-#include <vector>
-
+#include<bits/stdc++.h>
 using namespace std;
 
-void findWaitingTime(const vector<int>& processes, int n, const vector<int>& burstTime, vector<int>& waitingTime, const vector<int>& priority) {
-    vector<int> completionTime(n);
-    completionTime[0] = burstTime[0];
-    waitingTime[0] = 0;
+#define MAX_PROCESSES 10
 
-    for (int i = 1; i < n; i++) {
-        completionTime[i] = completionTime[i - 1] + burstTime[i - 1];
-        waitingTime[i] = completionTime[i] - burstTime[i];
+struct Process {
+    int pid;
+    int burst_time;
+    int priority;
+    int completion_time;
+    int waiting_time;
+};
+
+void swap(struct Process *xp, struct Process *yp) {
+    struct Process temp = *xp;
+    *xp = *yp;
+    *yp = temp;
+}
+
+void sortProcesses(struct Process processes[], int n) {
+    for (int i = 0; i < n - 1; i++) {
+        for (int j = 0; j < n - i - 1; j++) {
+            if (processes[j].priority > processes[j + 1].priority) {
+                swap(&processes[j], &processes[j + 1]);
+            }
+        }
     }
 }
 
-void findTurnaroundTime(const vector<int>& processes, int n, const vector<int>& burstTime, const vector<int>& waitingTime, vector<int>& turnaroundTime) {
+void priorityScheduling(struct Process processes[], int n) {
+    int time = 0;
+    float total_waiting_time = 0;
+
+    cout<<"Gantt Chart:"<<endl;
+    cout<<"0";
+
     for (int i = 0; i < n; i++) {
-        turnaroundTime[i] = burstTime[i] + waitingTime[i];
-    }
-}
-
-void findAverageTime(const vector<int>& processes, int n, const vector<int>& burstTime, const vector<int>& priority) {
-    vector<int> waitingTime(n), turnaroundTime(n);
-
-    findWaitingTime(processes, n, burstTime, waitingTime, priority);
-    findTurnaroundTime(processes, n, burstTime, waitingTime, turnaroundTime);
-
-    int totalWaitingTime = 0, totalTurnaroundTime = 0;
-    for (int i = 0; i < n; i++) {
-        totalWaitingTime += waitingTime[i];
-        totalTurnaroundTime += turnaroundTime[i];
+        time += processes[i].burst_time;
+        processes[i].completion_time = time;
+        processes[i].waiting_time = time - processes[i].burst_time;
+        total_waiting_time += processes[i].waiting_time;
+        cout<<" -- P"<<processes[i].pid<<" -- "<< time;
     }
 
-    cout << "Process\tBurst Time\tWaiting Time\tTurnaround Time\n";
-    for (int i = 0; i < n; i++) {
-        cout << processes[i] << "\t\t" << burstTime[i] << "\t\t" << waitingTime[i] << "\t\t" << turnaroundTime[i] << "\n";
-    }
-
-    cout << "\nAverage Waiting Time: " << static_cast<float>(totalWaitingTime) / n << "\n";
-    cout << "Average Turnaround Time: " << static_cast<float>(totalTurnaroundTime) / n << "\n";
+    cout<<endl;
+    cout<<"Average Waiting Time: "<< (float)total_waiting_time/n << endl;
 }
 
 int main() {
-    vector<int> processes = {1, 2, 3};
-    int n = processes.size();
-    vector<int> burstTime = {6, 8, 7};
-    vector<int> priority = {2, 1, 3}; // Lower number means higher priority
-
-    findAverageTime(processes, n, burstTime, priority);
+    int n;
+    struct Process processes[MAX_PROCESSES];
+    cout<<"Enter the number of processes: ";
+    cin>>n;
+    cout<<"Enter burst time and priority for each process "<<endl;
+    for (int i = 0; i < n; i++) {
+        cout<<"Process "<<i+1<<endl;
+        cout<<"Burst time: ";
+        cin>>processes[i].burst_time;
+        cout<<"Priority: ";
+        cin>>processes[i].priority;
+        processes[i].pid = i + 1;
+    }
+    sortProcesses(processes, n);
+    priorityScheduling(processes, n);
     return 0;
 }
